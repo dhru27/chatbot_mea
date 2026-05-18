@@ -84,3 +84,31 @@ bun install
 
 # Start the development server
 bun run dev
+```
+
+## Claude Chatbot Setup
+
+The MEA Assistant uses the existing FastAPI backend as a secure proxy to Claude.
+
+Frontend environment:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+Backend environment:
+
+```bash
+ANTHROPIC_API_KEY=your-anthropic-api-key
+ANTHROPIC_MODEL=claude-3-5-sonnet-latest
+ANTHROPIC_MAX_TOKENS=900
+```
+
+Add or update chatbot data in:
+
+```text
+backend/app/chatbot/knowledge/
+```
+
+The backend loads every `*.md` file in that folder, so new verified course notes, instructor mappings,
+slot information, or FAQs can be added without changing code.

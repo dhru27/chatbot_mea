@@ -7,6 +7,7 @@ A FastAPI backend for managing events, forms, registrations, and form responses.
 - Event management (create, read, update, delete)
 - Dynamic form creation and management
 - File uploads via Supabase Storage
+- Claude-powered MEA chatbot endpoint with editable markdown knowledge files
 
 ## Prerequisites
 
@@ -107,6 +108,7 @@ create index on public.form_responses (email);
    - CORS origins (frontend URLs)
    - Admin API key (create a strong secret)
    - Storage bucket name
+   - Anthropic API key for the chatbot (`ANTHROPIC_API_KEY`)
 
 6. Run the development server:
    ```bash
@@ -218,6 +220,20 @@ curl -X POST https://your-backend.onrender.com/registrations/ \
 curl -X POST https://your-backend.onrender.com/upload/ \
   -F "file=@/path/to/your/file.pdf"
 ```
+
+#### Ask the MEA Assistant (Public)
+
+```bash
+curl -X POST https://your-backend.onrender.com/chatbot/ask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "How do I check whether two course slots clash?",
+    "history": []
+  }'
+```
+
+The chatbot reads markdown files from `app/chatbot/knowledge/`. Add future verified facts, FAQs,
+course/instructor mappings, and slot information there.
 
 ### Example Schema Format
 

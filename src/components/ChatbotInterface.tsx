@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import ChatWindow from "@/components/chatbot/ChatWindow";
 
 const ChatbotInterface = () => {
   const [open, setOpen] = useState(false);
@@ -27,34 +28,27 @@ const ChatbotInterface = () => {
         aria-labelledby="chatbot-widget-title"
         aria-hidden={!open}
         className={cn(
-          "w-[min(calc(100vw-2rem),20rem)] origin-bottom-right rounded-xl border border-border bg-card text-card-foreground shadow-lg transition-all duration-200",
+          "w-[min(calc(100vw-2rem),26rem)] origin-bottom-right transition-all duration-200",
           open
             ? "pointer-events-auto scale-100 opacity-100"
             : "pointer-events-none scale-95 opacity-0 invisible"
         )}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-          <h2
-            id="chatbot-widget-title"
-            className="font-heading text-sm font-semibold text-mea-darkblue dark:text-white"
-          >
-            MEA Assistant
-          </h2>
+        <div className="sr-only" id="chatbot-widget-title">
+          MEA Assistant
+        </div>
+        <div className="relative">
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="absolute right-2 top-2 z-10 h-8 w-8 shrink-0"
             onClick={() => setOpen(false)}
             aria-label="Close chat panel"
           >
             <X className="h-4 w-4" />
           </Button>
-        </div>
-        <div className="flex min-h-[8rem] flex-col items-center justify-center px-4 py-8">
-          <p className="font-heading text-lg font-semibold text-mea-darkblue dark:text-white">
-            Coming soon
-          </p>
+          <ChatWindow variant="widget" />
         </div>
       </div>
 

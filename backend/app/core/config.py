@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     ADMIN_API_KEY: str  # secret for admin endpoints and reminder trigger
     # For file uploads:
     STORAGE_BUCKET: str  # Supabase Storage bucket name for file uploads
+    # Claude chatbot configuration:
+    ANTHROPIC_API_KEY: str | None = None
+    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-latest"
+    ANTHROPIC_MAX_TOKENS: int = 900
+    CHATBOT_KNOWLEDGE_DIR: str | None = None
 
     class Config:
         env_file = ".env"

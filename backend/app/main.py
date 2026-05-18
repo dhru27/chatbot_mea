@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import events, registrations, forms, upload, reminders
+from app.routers import chatbot, events, registrations, forms, upload, reminders
 from app.core.config import settings
 import logging
 
@@ -32,6 +32,7 @@ app.include_router(events.router)
 app.include_router(registrations.router)
 app.include_router(forms.router)
 app.include_router(upload.router)
+app.include_router(chatbot.router)
 
 @app.get("/")
 async def root():
