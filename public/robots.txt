@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Allow: /service-worker.js
+
+# Sitemap location
+Sitemap: https://mea.netlify.app/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 10
