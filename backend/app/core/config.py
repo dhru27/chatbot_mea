@@ -1,7 +1,7 @@
 import os
 from pydantic_settings import BaseSettings
 from pydantic import AnyUrl, HttpUrl
-from typing import List
+from typing import List, Literal
 
 class Settings(BaseSettings):
     """
@@ -13,10 +13,16 @@ class Settings(BaseSettings):
     ADMIN_API_KEY: str  # secret for admin endpoints and reminder trigger
     # For file uploads:
     STORAGE_BUCKET: str  # Supabase Storage bucket name for file uploads
-    # Claude chatbot configuration:
+    # Chatbot provider selection: "anthropic" or "openai"
+    CHATBOT_PROVIDER: Literal["anthropic", "openai"] = "openai"
+    # Anthropic (Claude) chatbot configuration:
     ANTHROPIC_API_KEY: str | None = None
     ANTHROPIC_MODEL: str = "claude-3-5-sonnet-latest"
     ANTHROPIC_MAX_TOKENS: int = 900
+    # OpenAI chatbot configuration:
+    OPENAI_API_KEY: str | None = None
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    OPENAI_MAX_TOKENS: int = 900
     CHATBOT_KNOWLEDGE_DIR: str | None = None
 
     class Config:

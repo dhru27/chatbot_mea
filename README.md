@@ -86,9 +86,9 @@ bun install
 bun run dev
 ```
 
-## Claude Chatbot Setup
+## Chatbot Setup
 
-The MEA Assistant uses the existing FastAPI backend as a secure proxy to Claude.
+The MEA Assistant uses the existing FastAPI backend as a secure proxy to an AI provider (OpenAI or Anthropic).
 
 Frontend environment:
 
@@ -96,9 +96,18 @@ Frontend environment:
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
-Backend environment:
+Backend environment (choose one provider):
 
 ```bash
+# Provider selection: "openai" or "anthropic"
+CHATBOT_PROVIDER=openai
+
+# OpenAI (when CHATBOT_PROVIDER=openai)
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-4o-mini
+OPENAI_MAX_TOKENS=900
+
+# Anthropic (when CHATBOT_PROVIDER=anthropic)
 ANTHROPIC_API_KEY=your-anthropic-api-key
 ANTHROPIC_MODEL=claude-3-5-sonnet-latest
 ANTHROPIC_MAX_TOKENS=900

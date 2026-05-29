@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/chatbot", tags=["chatbot"])
 
 ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages"
+OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
 DEFAULT_KNOWLEDGE_DIR = Path(__file__).resolve().parents[1] / "chatbot" / "knowledge"
 
 
@@ -113,7 +114,7 @@ Verified knowledge base:
 """.strip()
 
 
-def build_anthropic_messages(request: ChatRequest) -> list[dict[str, str]]:
+def build_chat_messages(request: ChatRequest) -> list[dict[str, str]]:
     messages: list[dict[str, str]] = []
     for item in request.history[-12:]:
         content = item.content.strip()
@@ -144,20 +145,21 @@ def extract_text_from_anthropic_response(payload: dict) -> str:
     return "\n".join(part for part in parts if part).strip()
 
 
-@router.post("/ask", response_model=ChatResponse)
-async def ask_chatbot(request: ChatRequest) -> ChatResponse:
-    if not settings.ANTHROPIC_API_KEY:
-        raise HTTPException(
-            status_code=503,
-            detail="Claude is not configured yet. Set ANTHROPIC_API_KEY on the backend.",
-        )
+def extract_text_from_openai_response(payload: dict) -> str:
+    choices = payload.get("choices", [])
+    if not choices:
+        return ""
+    message = choices[0].get("message", {})
+    return (message.get("content") or "").strip()
 
+
+async def _call_anthropic(request: ChatRequest) -> ChatResponse:
     payload = {
         "model": settings.ANTHROPIC_MODEL,
         "max_tokens": settings.ANTHROPIC_MAX_TOKENS,
         "temperature": 0.2,
         "system": build_system_prompt(),
-        "messages": build_anthropic_messages(request),
+        "messages": build_chat_messages(request),
     }
     headers = {
         "x-api-key": settings.ANTHROPIC_API_KEY,
@@ -170,20 +172,86 @@ async def ask_chatbot(request: ChatRequest) -> ChatResponse:
             response = await client.post(ANTHROPIC_MESSAGES_URL, headers=headers, json=payload)
     except httpx.TimeoutException as exc:
         logger.warning("Anthropic request timed out: %s", exc)
-        raise HTTPException(status_code=504, detail="Claude took too long to respond.") from exc
+        raise HTTPException(status_code=504, detail="AI assistant took too long to respond.") from exc
     except httpx.HTTPError as exc:
         logger.exception("Anthropic request failed")
-        raise HTTPException(status_code=502, detail="Unable to reach Claude right now.") from exc
+        raise HTTPException(status_code=502, detail="Unable to reach AI assistant right now.") from exc
 
     if response.status_code >= 400:
         logger.warning("Anthropic API error %s: %s", response.status_code, response.text)
-        detail = "Claude returned an error. Check the backend API key/model configuration."
+        detail = "AI assistant returned an error. Check the backend API key/model configuration."
         if response.status_code == 401:
-            detail = "Claude API key was rejected. Check ANTHROPIC_API_KEY."
+            detail = "Anthropic API key was rejected. Check ANTHROPIC_API_KEY."
         raise HTTPException(status_code=502, detail=detail)
 
     answer = extract_text_from_anthropic_response(response.json())
     if not answer:
-        raise HTTPException(status_code=502, detail="Claude returned an empty response.")
+        raise HTTPException(status_code=502, detail="AI assistant returned an empty response.")
 
     return ChatResponse(answer=answer, sources=VERIFIED_SOURCES, model=settings.ANTHROPIC_MODEL)
+
+
+async def _call_openai(request: ChatRequest) -> ChatResponse:
+    messages = [{"role": "system", "content": build_system_prompt()}]
+    messages.extend(build_chat_messages(request))
+
+    payload = {
+        "model": settings.OPENAI_MODEL,
+        "max_tokens": settings.OPENAI_MAX_TOKENS,
+        "temperature": 0.2,
+        "messages": messages,
+    }
+    headers = {
+        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=35.0) as client:
+            response = await client.post(OPENAI_CHAT_URL, headers=headers, json=payload)
+    except httpx.TimeoutException as exc:
+        logger.warning("OpenAI request timed out: %s", exc)
+        raise HTTPException(status_code=504, detail="AI assistant took too long to respond.") from exc
+    except httpx.HTTPError as exc:
+        logger.exception("OpenAI request failed")
+        raise HTTPException(status_code=502, detail="Unable to reach AI assistant right now.") from exc
+
+    if response.status_code >= 400:
+        logger.warning("OpenAI API error %s: %s", response.status_code, response.text)
+        detail = "AI assistant returned an error. Check the backend API key/model configuration."
+        if response.status_code == 401:
+            detail = "OpenAI API key was rejected. Check OPENAI_API_KEY."
+        elif response.status_code == 429:
+            error_body = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+            code = error_body.get("error", {}).get("code", "")
+            if code == "insufficient_quota":
+                detail = "OpenAI API quota exceeded. Add credits at https://platform.openai.com/settings/organization/billing"
+            else:
+                detail = "OpenAI rate limit reached. Please wait a moment and try again."
+        raise HTTPException(status_code=502, detail=detail)
+
+    answer = extract_text_from_openai_response(response.json())
+    if not answer:
+        raise HTTPException(status_code=502, detail="AI assistant returned an empty response.")
+
+    return ChatResponse(answer=answer, sources=VERIFIED_SOURCES, model=settings.OPENAI_MODEL)
+
+
+@router.post("/ask", response_model=ChatResponse)
+async def ask_chatbot(request: ChatRequest) -> ChatResponse:
+    provider = settings.CHATBOT_PROVIDER
+
+    if provider == "openai":
+        if not settings.OPENAI_API_KEY:
+            raise HTTPException(
+                status_code=503,
+                detail="OpenAI is not configured yet. Set OPENAI_API_KEY on the backend.",
+            )
+        return await _call_openai(request)
+
+    if not settings.ANTHROPIC_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="Anthropic is not configured yet. Set ANTHROPIC_API_KEY on the backend.",
+        )
+    return await _call_anthropic(request)

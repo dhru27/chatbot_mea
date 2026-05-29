@@ -123,7 +123,7 @@ const ChatWindow = ({ variant = "page" }: ChatWindowProps) => {
           id: makeId(),
           role: "assistant",
           content:
-            "I could not reach the Claude backend right now. Please check that VITE_API_BASE_URL points to the backend and ANTHROPIC_API_KEY is set there.",
+            "I could not reach the AI backend right now. Please check that VITE_API_BASE_URL points to the backend and the API key is configured there.",
         },
       ]);
     } finally {
@@ -152,7 +152,7 @@ const ChatWindow = ({ variant = "page" }: ChatWindowProps) => {
               MEA Assistant
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Claude-powered help for MEA, curriculum, ASC checks, and slot-clash guidance.
+              AI-powered help for MEA, curriculum, ASC checks, and slot-clash guidance.
             </p>
           </div>
           <span className="rounded-full bg-mea-gold/20 px-2.5 py-1 text-[11px] font-medium text-mea-darkblue dark:text-mea-gold">
@@ -214,7 +214,7 @@ const ChatWindow = ({ variant = "page" }: ChatWindowProps) => {
           <div className="flex justify-start">
             <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Thinking with Claude...
+              Thinking...
             </div>
           </div>
         ) : null}
