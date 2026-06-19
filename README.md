@@ -109,7 +109,7 @@ OPENAI_MAX_TOKENS=900
 
 # Anthropic (when CHATBOT_PROVIDER=anthropic)
 ANTHROPIC_API_KEY=your-anthropic-api-key
-ANTHROPIC_MODEL=claude-3-5-sonnet-latest
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
 ANTHROPIC_MAX_TOKENS=900
 ```
 

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     CHATBOT_PROVIDER: Literal["anthropic", "openai"] = "openai"
     # Anthropic (Claude) chatbot configuration:
     ANTHROPIC_API_KEY: str | None = None
-    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-latest"
+    ANTHROPIC_MODEL: str = "claude-sonnet-4-20250514"
     ANTHROPIC_MAX_TOKENS: int = 900
     # OpenAI chatbot configuration:
     OPENAI_API_KEY: str | None = None
