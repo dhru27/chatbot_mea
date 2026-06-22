@@ -18,6 +18,7 @@ import DAMP from "@/pages/DAMP";
 import Chatbot from "@/pages/Chatbot";
 import FormsListPage from "@/pages/FormsListPage";
 import FormPage from "@/pages/FormPage";
+import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="chatbot" element={<Chatbot />} />
               <Route path="forms" element={<FormsListPage />} />
               <Route path="forms/:formId" element={<FormPage />} />
+              <Route path="admin/dashboard" element={<AdminDashboard />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
