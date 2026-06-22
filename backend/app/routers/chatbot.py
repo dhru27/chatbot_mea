@@ -1,10 +1,20 @@
+import logging
+from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 import uuid
 
+import httpx
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/chatbot", tags=["chatbot"])
+
+OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
+DEFAULT_KNOWLEDGE_DIR = Path(__file__).resolve().parents[1] / "chatbot" / "knowledge"
 
 # --- DATA SCHEMAS ---
 class ChatQuery(BaseModel):
@@ -58,6 +68,90 @@ PREDECIDED_KNOWLEDGE = {
     }
 }
 
+
+# --- KNOWLEDGE BASE LOADER ---
+def load_knowledge_base() -> str:
+    knowledge_dir = DEFAULT_KNOWLEDGE_DIR
+    if settings.CHATBOT_KNOWLEDGE_DIR:
+        knowledge_dir = Path(settings.CHATBOT_KNOWLEDGE_DIR)
+    if not knowledge_dir.exists():
+        return ""
+    sections: list[str] = []
+    for path in sorted(knowledge_dir.glob("*.md")):
+        try:
+            sections.append(f"--- {path.name} ---\n{path.read_text(encoding='utf-8')}")
+        except OSError:
+            pass
+    return "\n\n".join(sections).strip()
+
+
+def build_system_prompt() -> str:
+    knowledge = load_knowledge_base()
+    rules_summary = ""
+    for cat, rules in PREDECIDED_KNOWLEDGE.items():
+        rules_summary += f"\n[{cat}]\n"
+        for key, val in rules.items():
+            rules_summary += f"  Q: {key}\n  A: {val}\n"
+
+    return f"""You are MEA Assistant, a helpful academic chatbot for Mechanical Engineering students at IIT Bombay.
+
+RULES:
+- Be concise, student-friendly, and clear. Hinglish is okay.
+- Use the knowledge base and predecided answers below as your source of truth.
+- If the question is about a specific personal issue (missing grades, specific certificate, individual course problem), say you cannot resolve personal issues and suggest the student escalate to Keshav or Komal Mam for help.
+- For general academic questions (curriculum, timetable, slot clashes, department info), answer helpfully.
+- Never invent instructors, deadlines, or ASC data. If unsure, say so.
+- Do not ask for passwords, roll numbers, or API keys.
+
+PREDECIDED ANSWERS (use these verbatim if the question matches):
+{rules_summary}
+
+KNOWLEDGE BASE:
+{knowledge}"""
+
+
+# --- OPENAI AI FALLBACK ---
+async def ask_openai(user_message: str, category: Optional[str] = None) -> Optional[str]:
+    if not settings.OPENAI_API_KEY:
+        return None
+
+    try:
+        system_prompt = build_system_prompt()
+        if category:
+            system_prompt += f"\n\nThe student selected category: {category}"
+
+        payload = {
+            "model": settings.OPENAI_MODEL,
+            "max_tokens": settings.OPENAI_MAX_TOKENS,
+            "temperature": 0.3,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+        }
+        headers = {
+            "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+            "Content-Type": "application/json",
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(OPENAI_CHAT_URL, headers=headers, json=payload)
+
+        if response.status_code >= 400:
+            logger.warning("OpenAI API error %s: %s", response.status_code, response.text)
+            return None
+
+        data = response.json()
+        choices = data.get("choices", [])
+        if not choices:
+            return None
+        return (choices[0].get("message", {}).get("content") or "").strip() or None
+
+    except Exception as exc:
+        logger.warning("OpenAI fallback failed: %s", exc)
+        return None
+
+
 # --- STUDENT CHAT ENDPOINT ---
 @router.post("/ask")
 async def ask_chatbot(payload: ChatQuery):
@@ -75,9 +169,14 @@ async def ask_chatbot(payload: ChatQuery):
             if rule_key in user_msg:
                 return {"source": "rule_matrix", "response": rule_answer, "escalate": False}
 
-    # 2. If it is an unresolved issue, trigger escalation
+    # 2. Try OpenAI AI fallback
+    ai_answer = await ask_openai(payload.message, cat)
+    if ai_answer:
+        return {"source": "ai_agent", "response": ai_answer, "escalate": False}
+
+    # 3. If AI also couldn't help, trigger escalation
     return {
-        "source": "ai_agent",
+        "source": "escalation",
         "response": "I couldn't find an instant match for this specific issue. Would you like to escalate this query directly to Keshav and Komal Mam? They respond within 24 hours.",
         "escalate": True
     }
