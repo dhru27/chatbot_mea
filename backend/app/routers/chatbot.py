@@ -16,7 +16,7 @@ router = APIRouter(prefix="/chatbot", tags=["chatbot"])
 OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
 DEFAULT_KNOWLEDGE_DIR = Path(__file__).resolve().parents[1] / "chatbot" / "knowledge"
 
-LAST_UPDATED = "23 June 2026"
+LAST_UPDATED = "24 June 2026"
 
 # --- DATA SCHEMAS ---
 class ChatQuery(BaseModel):
@@ -53,33 +53,41 @@ MOCK_TICKETS = [
 PREDECIDED_KNOWLEDGE = {
     "honors": {
         "retagging in honors": (
-            "Thank you for reaching out! Regarding retagging in honors — everything has been sent to the ASC portal. "
-            "If you need to meet someone in person, please visit the Academic Section (CC Building, 4th Floor). "
-            "For any further clarification, feel free to reach out to Keshav (DGSec) or Komal Mam.\n\n"
+            "The request for Honors retagging has already been submitted through the ASC portal from the department side. "
+            "At this stage, students are advised to wait or visit the ASC Office (CC Building, 4th Floor) for further status or action if required.\n\n"
             "📎 Reference: Academic Section, IIT Bombay"
         ),
     },
     "nptel": {
         "asc pr abhi tk nptel reflect nhi hua": (
-            "Hi! We understand the concern. NPTEL course reflection on ASC is currently pending for a portion of the batch. "
-            "Please give it a few more days — the Academic Office is processing the data. If it still doesn't reflect after a week, "
-            "feel free to escalate through this chat and we'll follow up with the office directly.\n\n"
+            "This issue is currently pending for a section of the batch and is not specific to an individual student. "
+            "It is already under process, so please wait a few more days for the course to reflect on ASC before raising it separately.\n\n"
             "📎 Reference: Academic Office, IIT Bombay"
         ),
         "nptel came to asc but wrong tag": (
-            "We're sorry to hear about the tagging issue! To get this corrected, please send an email to:\n\n"
-            "• Komal Mam — komals@iitb.ac.in\n"
-            "• Academic Office — aracad4@iitb.ac.in\n\n"
-            "In your email, please mention your current tag and the correct tag you'd like it changed to. "
-            "This is usually resolved within a few working days.\n\n"
+            "If your NPTEL course is visible on ASC but has been tagged incorrectly, please email Komal Ma'am and the Academic Office, clearly mentioning:\n\n"
+            "• Your name and roll number\n"
+            "• The NPTEL course name\n"
+            "• The tag currently shown on ASC\n"
+            "• The correct tag that should be applied\n\n"
+            "This will help them process the correction directly.\n\n"
+            "📧 Komal Ma'am: komals@iitb.ac.in\n"
+            "📧 Academic Office: aracad4@iitb.ac.in\n\n"
             "📎 Reference: Academic Office retagging process"
         ),
         "two nptel courses showing as a single course": (
-            "That does happen occasionally during data entry. To fix this, please write an email directly to:\n\n"
-            "• Komal Mam — komals@iitb.ac.in\n"
-            "• Academic Office — aracad4@iitb.ac.in\n\n"
-            "Please include the details of both NPTEL courses (course names, certificate numbers) so they can be separated correctly.\n\n"
+            "If two of your NPTEL courses are appearing as a single entry on ASC, please email Komal Ma'am and the Academic Office "
+            "with complete details of both courses, including course names and relevant screenshots if possible. "
+            "This issue needs to be corrected from the backend.\n\n"
+            "📧 Komal Ma'am: komals@iitb.ac.in\n"
+            "📧 Academic Office: aracad4@iitb.ac.in\n\n"
             "📎 Reference: Academic Office, IIT Bombay"
+        ),
+        "nptel not being counted towards credits": (
+            "This issue has already been communicated from the department side, and the Academic Office is aware of it. "
+            "It is expected to be resolved from their end shortly. No separate action is required from students at the moment "
+            "unless specifically asked later.\n\n"
+            "📎 Reference: ME Department & Academic Office"
         ),
         "nptel process": (
             "Here's the step-by-step process for completing electives through NPTEL:\n\n"
@@ -96,30 +104,30 @@ PREDECIDED_KNOWLEDGE = {
     },
     "dic_courses": {
         "course not reflected": (
-            "Thank you for flagging this! We'd like to assure you that the course reflection is currently in progress "
-            "and should appear on the portal soon. The backend procedure from the department side has been fully completed. "
-            "If it doesn't reflect within the next few days, please don't hesitate to reach out again.\n\n"
+            "The department-side process for DIC courses has already been completed. The course should reflect on ASC soon "
+            "once the remaining backend updates are processed. Please wait for some time before raising it individually.\n\n"
             "📎 Reference: ME Department Office"
         ),
         "need to convert ce102 to me104 equivalent": (
-            "This is a great question! The CE102 to ME104 equivalence conversion is currently in process and under active "
-            "discussion with the department. We will post updates directly on the official WhatsApp groups as soon as it is finalized. "
-            "Thank you for your patience!\n\n"
+            "The CE102 to ME104 conversion matter is currently under discussion with the department. "
+            "Once there is a confirmed update, it will be communicated on the official WhatsApp groups. "
+            "Please rely on those updates instead of raising the same query individually.\n\n"
             "📎 Reference: ME DUGC"
         ),
     },
     "retagging_issues": {
         "error course is not part of course bulletin or undefined": (
-            "We understand this can be frustrating! To resolve this error, please send an email with a screenshot of the error to:\n\n"
-            "• Komal Mam — komals@iitb.ac.in\n"
-            "• Academic Office — aracad4@iitb.ac.in\n\n"
-            "They'll be able to look into it and fix the course bulletin entry. This usually takes 2–3 working days.\n\n"
+            "If you are getting a \"course not in bulletin\" error while trying to retag, please email Komal Ma'am and the Academic Office "
+            "along with a screenshot of the error. This will help them identify the issue and resolve it from their side.\n\n"
+            "📧 Komal Ma'am: komals@iitb.ac.in\n"
+            "📧 Academic Office: aracad4@iitb.ac.in\n\n"
             "📎 Reference: Academic Office, IIT Bombay"
         ),
         "robotic minor not able to see its tag on asc": (
-            "Thank you for bringing this up! We'll need your roll number to track and update this manually. "
-            "Could you please share it here or reach out to Keshav (DGSec) directly? "
-            "You can contact him at (+91) 78765 61677.\n\n"
+            "If your Robotics minor tag is not showing on ASC, please share your roll number so that the case can be tracked manually from our side. "
+            "You can contact Keshav or Komal Ma'am directly for this.\n\n"
+            "👤 Keshav (DGSec): (+91) 78765 61677 | gsec@me.iitb.ac.in\n"
+            "👤 Komal Ma'am: komals@iitb.ac.in\n\n"
             "📎 Reference: ME Department Office"
         ),
     },
@@ -127,21 +135,28 @@ PREDECIDED_KNOWLEDGE = {
         "contact keshav": (
             "Here are Keshav's contact details:\n\n"
             "👤 Keshav — Department General Secretary (DGSec), Mechanical Engineering\n"
-            "📱 Phone: (+91) 78765 61677\n\n"
+            "📱 Phone: (+91) 78765 61677\n"
+            "📧 Email: gsec@me.iitb.ac.in\n\n"
             "Feel free to reach out to him for any academic or department-related queries!"
         ),
         "contact komal mam": (
-            "Here are Komal Mam's contact details:\n\n"
-            "👤 Komal Mam — Academic Office, Mechanical Engineering Department\n"
+            "Here are Komal Ma'am's contact details:\n\n"
+            "👤 Komal Ma'am — Academic Office, Mechanical Engineering Department\n"
             "📞 Phone: (+91) 22 - 2576 7502\n"
             "📧 Email: komals@iitb.ac.in\n\n"
             "She handles retagging, NPTEL equivalences, and academic records. Feel free to reach out!"
         ),
+        "contact academic office": (
+            "Here are the Academic Office contact details:\n\n"
+            "📧 Email: aracad4@iitb.ac.in\n\n"
+            "You can reach out to them for retagging issues, course bulletin corrections, and general academic queries."
+        ),
         "keshav phone": (
-            "Keshav's phone number is (+91) 78765 61677. He is the current Department General Secretary (DGSec) for Mechanical Engineering."
+            "Keshav's phone number is (+91) 78765 61677 and his email is gsec@me.iitb.ac.in. "
+            "He is the current Department General Secretary (DGSec) for Mechanical Engineering."
         ),
         "komal mam email": (
-            "Komal Mam's email is komals@iitb.ac.in and her phone number is (+91) 22 - 2576 7502."
+            "Komal Ma'am's email is komals@iitb.ac.in and her phone number is (+91) 22 - 2576 7502."
         ),
     },
 }
@@ -185,8 +200,9 @@ RULES:
 - Keshav is the current Department General Secretary (DGSec) of Mechanical Engineering.
 
 CONTACT INFORMATION:
-- Keshav (DGSec): Phone (+91) 78765 61677
-- Komal Mam: Phone (+91) 22-2576 7502, Email komals@iitb.ac.in
+- Keshav (DGSec): Phone (+91) 78765 61677, Email gsec@me.iitb.ac.in
+- Komal Ma'am: Phone (+91) 22-2576 7502, Email komals@iitb.ac.in
+- Academic Office: Email aracad4@iitb.ac.in
 - ME Department: Phone (+91) 22-2576 7501/02/03, Email office.me@iitb.ac.in
 
 PREDECIDED ANSWERS (use these verbatim if the question matches):

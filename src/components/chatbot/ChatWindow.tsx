@@ -40,6 +40,7 @@ const CATEGORIES: CategoryDef[] = [
       "asc pr abhi tk nptel reflect nhi hua": "NPTEL not reflected on ASC yet",
       "nptel came to asc but wrong tag": "NPTEL on ASC but wrong tag",
       "two nptel courses showing as a single course": "Two NPTEL courses merged into one",
+      "nptel not being counted towards credits": "NPTEL not being counted towards credits",
       "nptel process": "How does the NPTEL process work?",
     },
   },
