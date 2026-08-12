@@ -10,6 +10,8 @@ interface ChatMessage {
   id: string;
   role: ChatRole;
   content: string;
+  answeredBy?: string;
+  source?: string;
 }
 
 interface ChatWindowProps {
@@ -108,8 +110,8 @@ const ChatWindow = ({ variant = "page" }: ChatWindowProps) => {
       .catch(() => {});
   }, [apiBase]);
 
-  const addAssistantMsg = (content: string) => {
-    setMessages((prev) => [...prev, { id: makeId(), role: "assistant", content }]);
+  const addAssistantMsg = (content: string, answeredBy?: string, source?: string) => {
+    setMessages((prev) => [...prev, { id: makeId(), role: "assistant", content, answeredBy, source }]);
   };
 
   const addUserMsg = (content: string) => {
@@ -160,7 +162,7 @@ const ChatWindow = ({ variant = "page" }: ChatWindowProps) => {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.detail || "Unable to get a response right now.");
 
-      addAssistantMsg(data.response);
+      addAssistantMsg(data.response, data.answered_by, data.source);
 
       if (data.escalate) {
         setShowEscalation(true);
@@ -292,6 +294,13 @@ const ChatWindow = ({ variant = "page" }: ChatWindowProps) => {
               )}
             >
               <p className="whitespace-pre-wrap">{renderMessage(message.content)}</p>
+              {message.role === "assistant" && message.source && message.source !== "escalation" ? (
+                <div className="mt-2 flex items-center gap-1.5 border-t border-border/50 pt-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:bg-green-900/40 dark:text-green-400">
+                    {message.source === "rule_matrix" ? "Verified Answer" : message.source === "learned_faq" ? "From FAQ" : "AI Generated"}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
         ))}
